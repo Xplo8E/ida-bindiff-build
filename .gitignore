@@ -1,0 +1,8 @@
+/.venv-python-bindiff/
+/bindiff/
+/binexport/
+/idasdk93/
+/build/
+/idb-export-experiment/
+/python-bindiff-out/
+*.dSYM/

@@ -1,0 +1,43 @@
+diff --git a/cmake/BinExportDeps.cmake b/cmake/BinExportDeps.cmake
+index 58d8382..61c9007 100644
+--- a/cmake/BinExportDeps.cmake
++++ b/cmake/BinExportDeps.cmake
+@@ -148,7 +148,12 @@ set(Boost_NO_SYSTEM_PATHS TRUE)
+ if(NOT BOOST_ROOT)
+   set(BOOST_ROOT "${BINEXPORT_SOURCE_DIR}/boost_parts")
+ endif()
+-find_package(Boost 1.83 REQUIRED)
++if(EXISTS "${BOOST_ROOT}/boost/version.hpp")
++  set(Boost_FOUND TRUE)
++  set(Boost_INCLUDE_DIR "${BOOST_ROOT}")
++else()
++  find_package(Boost 1.83 REQUIRED)
++endif()
+ 
+ find_package(Git)
+ if(BINEXPORT_ENABLE_IDAPRO)
+diff --git a/cmake/FindIdaSdk.cmake b/cmake/FindIdaSdk.cmake
+index 9e0cfa1..811fa7b 100644
+--- a/cmake/FindIdaSdk.cmake
++++ b/cmake/FindIdaSdk.cmake
+@@ -99,6 +99,7 @@ else()
+ endif()
+ 
+ message(STATUS "IDA_SDK_VERSION = ${IDA_SDK_VERSION}")
++add_compile_definitions(IDA_SDK_VERSION=${IDA_SDK_VERSION})
+ 
+ # Define some platform specific variables for later use.
+ set(_so "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+@@ -213,9 +214,9 @@ if(APPLE)
+                     -output "${_ida64_universal_lib}"
+       )
+     endif()
+-    add_library(ida SHARED IMPORTED)
+-    add_dependencies(ida ida64_universal)
+-    set_target_properties(ida PROPERTIES
++    add_library(ida64 SHARED IMPORTED)
++    add_dependencies(ida64 ida64_universal)
++    set_target_properties(ida64 PROPERTIES
+       IMPORTED_LOCATION "${_ida64_universal_lib}"
+     )
+ 
