@@ -81,6 +81,46 @@ When installed into the default IDA app bundle:
 /Applications/IDA Professional 9.3.app/Contents/MacOS/plugins/binexport12_ida64.dylib
 ```
 
+## IDA GUI Usage
+
+### BinExport
+
+Open the database in IDA, then use:
+
+```text
+Edit -> Plugins -> BinExport -> BinExport v2 Binary
+```
+
+Select the output path. IDA writes the `.BinExport` file there.
+
+### BinDiff
+
+First analyze both binaries in IDA and save both IDA databases.
+
+Then open the primary database in IDA and use:
+
+```text
+Edit -> Plugins -> BinDiff
+```
+
+Select `Diff Database`, then choose the secondary IDA database. BinDiff creates
+the result and shows:
+
+```text
+Matched Functions
+Unmatched Primary
+Unmatched Secondary
+Statistics
+```
+
+### BinDiff App / Call Graph UI
+
+To view the call graph in the BinDiff app, use:
+
+```text
+View context in call graph
+```
+
 ## Headless Usage
 
 Export a `.BinExport` from an IDB:
