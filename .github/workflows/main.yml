@@ -13,16 +13,7 @@ env:
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - os: ubuntu-24.04
-        - os: ubuntu-22.04
-        - os: macos-14
-        - os: macos-13
-        - os: windows-2022
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-26
 
     steps:
     - uses: actions/checkout@v4
@@ -54,35 +45,16 @@ jobs:
         ref: ${{ env.IDASDK_REF }}
         path: idasdk93
 
-    - name: Enable Developer Command Prompt (Windows)
-      if: matrix.os == 'windows-2022'
-      uses: ilammy/msvc-dev-cmd@v1.12.1
-
-    - name: Enable mold linker (Linux)
-      if: matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-22.04'
-      uses: rui314/setup-mold@v1
-
-    - name: Install boost
-      uses: MarkusJx/install-boost@v2
-      id: install-boost
-      with:
-        boost_version: 1.83.0
-        platform_version: ${{ matrix.os == 'windows-2022' && '2022' || matrix.os == 'ubuntu-24.04' && '22.04' || matrix.os == 'ubuntu-22.04' && '22.04' || matrix.os == 'macos-14' && '14' || matrix.os == 'macos-13' && '13' }}
-        toolset: ${{ matrix.os == 'windows-2022' && 'msvc' || matrix.os == 'ubuntu-24.04' && 'gcc' || matrix.os == 'ubuntu-22.04' && 'gcc' || matrix.os == 'macos-14' && 'clang' || matrix.os == 'macos-13' && 'clang' }}
-        arch: ${{ matrix.os != 'macos-14' && 'x86' || matrix.os == 'macos-14' && 'aarch64' }}
-
     - name: Configure CMake
       shell: bash
-      env:
-        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
         cmake -S bindiff -B build/out -G Ninja \
           "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
           -DCMAKE_INSTALL_PREFIX=build/out \
           -DBINDIFF_BINEXPORT_DIR=binexport \
           "-DIdaSdk_ROOT_DIR=${PWD}/idasdk93/src" \
-          -DBoost_INCLUDE_DIR="${{ steps.install-boost.outputs.BOOST_ROOT }}/include" \
-          -DBoost_LIBRARY_DIRS="${{ steps.install-boost.outputs.BOOST_ROOT }}/lib"
+          -DBoost_INCLUDE_DIR="${PWD}/binexport/boost_parts" \
+          -DBoost_LIBRARY_DIRS="${PWD}/binexport/boost_parts"
 
     - name: Build
       working-directory: build/out
@@ -97,7 +69,7 @@ jobs:
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: BinDiff-IDA-${{ env.IDA_VERSION_FOR_ARTIFACT_NAME }}-${{ matrix.os }}
+        name: BinDiff-IDA-${{ env.IDA_VERSION_FOR_ARTIFACT_NAME }}-macos-26
         path: |
           build/out/bindiff
           build/out/bindiff.exe
@@ -106,8 +78,6 @@ jobs:
 
     - name: Configure CMake (binexport)
       shell: bash
-      env:
-        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
         cmake -S binexport -B build/out/_deps/binexport-build -G Ninja \
           "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
@@ -115,8 +85,8 @@ jobs:
           -DBINEXPORT_ENABLE_IDAPRO=ON \
           -DBINEXPORT_ENABLE_BINARYNINJA=ON \
           "-DIdaSdk_ROOT_DIR=${PWD}/idasdk93/src" \
-          -DBoost_INCLUDE_DIR="${{ steps.install-boost.outputs.BOOST_ROOT }}/include" \
-          -DBoost_LIBRARY_DIRS="${{ steps.install-boost.outputs.BOOST_ROOT }}/lib"
+          -DBoost_INCLUDE_DIR="${PWD}/binexport/boost_parts" \
+          -DBoost_LIBRARY_DIRS="${PWD}/binexport/boost_parts"
 
     - name: Build (binexport)
       working-directory: build/out/_deps/binexport-build
@@ -131,7 +101,7 @@ jobs:
     - name: Upload Build Artifacts (binexport)
       uses: actions/upload-artifact@v4
       with:
-        name: BinExport-IDA-${{ env.IDA_VERSION_FOR_ARTIFACT_NAME }}-${{ matrix.os }}
+        name: BinExport-IDA-${{ env.IDA_VERSION_FOR_ARTIFACT_NAME }}-macos-26
         path: |
           build/out/_deps/binexport-build/binaryninja/binexport*
           build/out/_deps/binexport-build/ida/binexport*
